@@ -1,0 +1,22 @@
+{
+  "name": "@funcmaticjs/funcmatic",
+  "version": "0.0.1",
+  "description": "Middleware framework for AWS Lambda using ES2017 async functions (inspired by Koa.js)",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Daniel Jhin Yoo <danieljyoo@gmail.com> (https://github.com/danieljyoo)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/funcmaticjs/funcmatic.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^21.2.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
