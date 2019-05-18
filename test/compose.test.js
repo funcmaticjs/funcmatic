@@ -1,7 +1,7 @@
 const f = require('../lib/func')
 const compose = f.compose
 
-describe('Compose', async () => {
+describe('Compose', () => {
   let ctx = null
   beforeEach(async () => {
     ctx = { 
@@ -62,7 +62,7 @@ describe('Compose', async () => {
   })
 })
 
-describe('Func Plugins', async () => {
+describe('Func Plugins', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {

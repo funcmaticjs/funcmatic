@@ -1,3 +1,3 @@
 # funcmatic
 
-Coming soon!
+Coming soon! 

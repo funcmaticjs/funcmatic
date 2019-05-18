@@ -1,6 +1,6 @@
 const f = require('../lib/func')
 
-describe('Func Cold Start', async () => {
+describe('Func Cold Start', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
@@ -66,7 +66,7 @@ describe('Func Env', async () => {
     })
   })
 })
-describe('Func Start', async () => {
+describe('Func Start', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
@@ -125,7 +125,7 @@ describe('Func Start', async () => {
   })
 })
 
-describe('Func Request', async () => {
+describe('Func Request', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
@@ -144,7 +144,7 @@ describe('Func Request', async () => {
   })
 })
 
-describe('Func Invoke', async () => {
+describe('Func Invoke', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
@@ -181,7 +181,7 @@ describe('Func Invoke', async () => {
   })
 })
 
-describe('Func Handler', async () => {
+describe('Func Handler',() => {
   let func = null
   beforeEach(async () => {
     func = new f.create()
@@ -199,7 +199,7 @@ describe('Func Handler', async () => {
   })
 })
 
-describe('Func Teardown', async () => {
+describe('Func Teardown', () => {
   let func = null
   beforeEach(async () => {
     func = new f.create()

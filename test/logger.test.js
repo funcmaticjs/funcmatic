@@ -1,6 +1,6 @@
 const f = require('../lib/func')
 
-describe('Metadata', async () => {
+describe('Metadata', () => {
   let logger = null
   beforeEach(async () => {
     logger = new f.ConsoleLogger()
@@ -36,7 +36,7 @@ describe('Metadata', async () => {
   })
 })
 
-describe('Messages', async () => {
+describe('Messages', () => {
   let logger = null
   beforeEach(async () => {
     logger = new f.ConsoleLogger()
@@ -66,7 +66,7 @@ describe('Messages', async () => {
 // duration: 3
 // execution: 0
 // component: "PinoLogger:request"
-describe('Pretty', async () => {
+describe('Pretty', () => {
   let logger = null
   beforeEach(async () => {
     logger = new f.ConsoleLogger({ LOG_PRETTY: 'true' })
@@ -82,7 +82,7 @@ describe('Pretty', async () => {
   })
 })
 
-describe('Levels', async () => { 
+describe('Levels', () => { 
   let logger = null
   beforeEach(async () => {
     logger = new f.ConsoleLogger()
@@ -98,7 +98,7 @@ describe('Levels', async () => {
   })
 })
 
-describe('Logging Errors', async () => {
+describe('Logging Errors', () => {
   let logger = null
   beforeEach(async () => {
     logger = new f.ConsoleLogger()
