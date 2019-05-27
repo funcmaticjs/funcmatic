@@ -399,7 +399,7 @@ func.request(async (ctx, next) => {
 
 ### Middleware Plugins
 
-Plugins are defined as Javascript classes that define one or more lifecycle-specific middleware functions. 
+Plugins are defined as Javascript classes that define one or more lifecycle-specific middleware functions. The class should have the following structure below (only including the lifecycle methods for which your plugin needs to engage with).
 
 
 ```js
@@ -412,64 +412,65 @@ class MyMiddlewarePlugin {
   teardown(ctx, next) { }
 }
 
-module.exports = MyMiddlewarePlugin
+func.use(new MyMiddlewarePlugin())
 ```
 
 
+While Funcmatic supports creating and adding individual function middleware, ***we recommend that you create and use middleware as plugins rather than individual functions***. The reasons are:
+
+1. It is because it is more self-documenting as async functions which lifecycle
+2. Easier for developers to use since instead of importing/adding each method they just do a `func.use` 
+3. It puts all releveant logic in one place
+
+
+#### Using a Published Middleware Plugin 
+
+The [response-plugin]() does blah blah and is accessible via NPM. 
+
+##### 1. First install the plugin 
 
 ```
 $> npm install '@funcmaticjs/response-plugin'
 ```
 
-You can add plugins to your function's middleware stack by calling `use`:
+##### 2. Require the plugin's class, create an instance, and call `func.use`
 
 ```js
 let func = require('@funcmaticjs/func')
+
+You can add plugins to your function's middleware stack by calling `use`:
 let ResponsePlugin = require('@funcmaticjs/response-plugin')
 
 // 
 func.use(new ResponsePlugin())
 ```
 
-
-### Creating and Using Custom Middleware Plugins
-
-
-### Publishing Middleware Plugins
-
-
-## Available Middleware
+## Available Middleware Plugins
 
 ### Environment Variables and Config
-* [LocalEnvPlugin](https://google.com): Automatically bring all `process.env` variables to `ctx.env`
-* [StageVariablesPlugin](https://google.com): Set API Gateway Stage Variables in `ctx.env`
-* [ParameterStorePlugin](https://google.com): Fetch environment variables from AWS Parameter Store and set them in `ctx.env`
-
+* [ProcessEnvPlugin](https://github.com/funcmaticjs/processenv-plugin): Automatically bring all `process.env` variables to `ctx.env`
+* [StageVarsPlugin](https://github.com/funcmaticjs/stagevars-plugin): Set API Gateway Stage Variables in `ctx.env`
+* [ParameterStorePlugin](https://github.com/funcmaticjs/parameterstore-plugin): Fetch environment variables from AWS Parameter Store and set them in `ctx.env`
 
 ### AWS Event and Context
-* [EventHelperPlugin](https://google.com): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
-
-
+* [EventPlugin](https://google.com): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
+* [BodyParserPlugin](https://google.com): test 
 
 ### Authentication and Authorization
 * [Auth0Plugin](https://google.com): Authenticate a token
 * [Auth0CachePlugin](https://google.com):  
 
 ### Datastores
-* DynamoDBCachePlugin: 
-* MongoDBPlugin:
-* MySQLPlugin:
+* [MemoryCachePlugin](https://github.com/funcmaticjs/memory-cache-plugin): Implements a simple in-memory based cache
+* [DynamoDBCachePlugin](https://github.com/funcmaticjs/dynamodb-cache-plugin): Creates a simple async cache interface (get, set, del) around DynamoDB.
+* [MongoDBPlugin](https://github.com/funcmaticjs/mongodb-plugin): Creates and manages a MongoDB connection
 
 ### Response 
-* [ResponsePlugin](https://github.com/funcmaticjs/response-plugin)
-* More coming soon!
+* [ResponsePlugin](https://github.com/funcmaticjs/response-plugin): Express-like HTTP response methods (e.g. res.json(), res.sendFile()) to be used in AWS Lambda Node functions connected to API Gateway using AWS Lambda Proxy Integration.
 
 ### Logging and Monitoring
 * CorrelationPlugin
 * EnableDebugPlugin
-
-
-
 
 
 ## Context (`ctx`)
@@ -488,6 +489,11 @@ func.use(new ResponsePlugin())
 
 
 ## Unit Testing
+
+
+##### Unit Testing Plugins
+
+
 
 ## Documentation
 
