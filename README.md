@@ -491,8 +491,7 @@ func.use(new ResponsePlugin())
 * [BodyParserPlugin](https://github.com/funcmaticjs/bodyparser-plugin): Parse common types of event.body content (e.g. application/json, application/x-www-form-urlencoded, multipart/form-data).
 
 ### Authentication and Authorization
-* [Auth0Plugin](https://google.com): 
-* [Auth0CachePlugin](https://google.com):  
+* [Auth0Plugin](https://github.com/funcmaticjs/auth0-plugin): Verifies an Auth0 JWT token in the 'Authorization' header and puts the decoded token in 'ctx.state.auth'
 
 ### Datastores
 * [MemoryCachePlugin](https://github.com/funcmaticjs/memory-cache-plugin): Implements a simple in-memory based cache
