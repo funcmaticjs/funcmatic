@@ -1,9 +1,0 @@
-TODO:
-
-
-DONE:
-
-* DONE: More rigorous testing of timing and stuff (compose.test.js)
-* BUG: when switching from console logger to pinologger meta is not carried over
-* Error handling and ctx.stack? 
-* ctx.stack into initCtx

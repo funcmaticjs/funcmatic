@@ -38,7 +38,6 @@ If Funcmatic doesn't quite suit your project (or your tastes) here are some othe
 * [Lambcycle](https://github.com/juliantellez/lambcycle): Lambcycle is a declarative lambda middleware. Its main purpose is to let you focus on the specifics of your application by providing a configuration cycle.
 * [Lambda API](https://github.com/jeremydaly/lambda-api): Lightweight web framework for your serverless applications.
 
-
 ## Installation
 
 Funcmatic requires **node v8.10** or higher. 
@@ -292,12 +291,35 @@ func.teardown(async (ctx) => {
 
 One of the primary benefits of using Funcmatic is being able to package common logic into middleware and reuse it our functions.
 
-Funcmatic's middleware design is based on [Koa.js](https://github.com/koajs/koa). One primary difference with Koa is that since each lifecycle handler has its own entrypoint of execution (i.e. env, start, request, error). This means that you can configure each lifecycle handler to have its own independent *middleware stack*.
+Funcmatic's middleware design is based on [Koa.js](https://github.com/koajs/koa). Since each lifecycle handler has its own entrypoint of execution (i.e. env, start, request, error), this means that each lifecycle handler can be configured with its own middleware stack. 
 
-### Middleware Functions
+### Middleware Stack and Functions
 
-A *middleware stack* is a nested series of async functions with the following structure:
+A *middleware stack* is series of nested Javascript async functions. 
 
+
+#### Flow of Execution In a Middleware Stack
+
+The first (i.e. topmost) function is invoked by the Funcmatic framework directly. It is the first middleware function's responsibility to pass control to the second middleware function by calling `await next()`. `next` is a special callback async function created by Funcmatic and available all middleware functions.
+
+The second function invokes the third, third invokes the fourth, and so on until we reach the last function in the stack which is typically where your function-specific logic lives. 
+
+Since this last function is at the bottom of the stack, it does not need to call `next()` since there is no next function to pass control off to. It can simply `return` to end its own execution.
+
+Now execution flows back up the stack in the reverse direction. The N-1 function was waiting on the last function to complete execution `await next()`. 
+
+The N-1 function can now execute its own logic and then end its own execution and pass control to the N-2 function by calling `return` and so on until the second function returns and passes control back to the first function which was waiting for it via `await next()`.
+
+#### Middleware Function Definition
+
+Middleware functions are just async javascript functions that take two arguments: `ctx` and `next`.
+
+- `ctx`: The context object which many middleware functions with read data from and also write data to. Since middleware functions don't directly pass arguments or return data directly to each other, `ctx` is the only way for as a side effect.  *See ctx documentation below for more details*. 
+- `next`: an async function created and passed in by Funcmatic. All middleware functions ***must call `next` once and only once*** so that execution can continue to the next middleware function in the stack.
+
+##### Code Structure of a Middleware Function
+
+A middleware function has the following structure:
 ```js
 async (ctx, next) => { 
   // All "downstream" middleware logic higher in the stack will have been executed
@@ -311,13 +333,10 @@ async (ctx, next) => {
 }
 ```
 
-- `ctx`: middleware will often read and write values to the `ctx` object.
-- `next`: an async function created and passed in by Funcmatic. All middleware functions ***must call `next` once and only once*** so that execution can continue to the next middleware function in the stack.
-
-At the bottom of the stack is typically the *end-user function* which has the following structure:
+Since the last function (often our function's specific logic) does not have to invoke `await next()` it can have the structure below:
 
 ```js
-async (ctx) => {
+async (ctx) => { // Note we don't need to accept the "next" parameter
   // All "downstream" middleware logic has executed by this time
   /* This end-user function's logic ... */
   return // any return value will be ignored
@@ -325,24 +344,28 @@ async (ctx) => {
 }
 ```
 
-You will notice that the only difference is that *end-user function* does not accept (or invoke) the `next` function. It does not need to invoke the next function it is the last function in the stack and therefore does not have any functions to pass execution off to. 
+There are two useful terms to describe what happens in a specific middleware function:
 
-The last function in the stack is the turning point in execution flows *downstream* to back *upstream*. 
+- **Downstream Logic**: This is the code that executes in a middleware function *BEFORE* it calls `await next()` and pass control to the lower function in the stack.
+- **Upstream Logic**: This is the code that executes in a middleware function *AFTER* it calls `awaits next()` and control returns as a result of the lower function completing execution via `return`.
 
+*Downstream* and *Upstream* are relative terms. In Funcmatic we think of the user initiating a request to our API being the *topmost* and our function-specific logic being *bottommost*. Therefore execution first makes its way downstream from the user, through our middleware stack, to our function specific logic. And then back *upstream* through our middleware stack and ultimately return to the user. 
 
-#### Using Middleware Functions
+#### Examples of Middleware Functions
 
-To add a middleware function to a lifecycle's middleware stack, just pass the function to a call to `func.env`, `func.start`, `func.request`, `func.error`, `func.teardown`.
-
-For example, 
-
-#### Simple Examples of Middleware Functions
+Here are some simple examples of middleware functions.
 
 ##### 1. AWS Event `queryStringParameters` normalizer
 
+One annoying thing about AWS's `event` object is that if the user's HTTP request has no query parameters the `event.queryStringParameters` object will be `null` instead of `{}`. This means that everywhere in our code we have to check if `event.queryStringParameters` is first `null` before we check if our. 
+
+Instead of putting these checks everywhere, let's write a middleware function that will do it once and set 
 ```js
 // 1. define our middleware function
 const queryStringParametersNormalizer = async (ctx, next) => {
+  // Because we want all "downstream" logic to not 
+  // have to check "event.queryStringParameters == null"
+  // we put this logic BEFORE "await next()"
   let event = ctx.event
   if (!event.queryStringParameters) {
     event.queryStringParameters = { }
@@ -351,14 +374,27 @@ const queryStringParametersNormalizer = async (ctx, next) => {
   return
 }
 // 2. add it to the request middleware stack
+// when the "request" lifecycle handler is invoked
+// by Funcmatic
 func.request(queryStringParametersNormalizer)
 ```
 
 ##### 2. CORS Headers 
 
+*It's always CORS!* To be honest, I still do not understand how to properly configure API Gateway's built in CORS support. Rather than leave it up to AWS, let's not leave things to chance and just set the CORS header `Access-Control-Allow-Origin` to `*` ourselves. This will allow our API can be called from any website domain.
+
 ```js
+// We can define and add our middleware function 
+// at the same time.
 func.request(async (ctx, next) => {
   await next()
+  // Note that this logic happens "upstream" when control
+  // is flowing back up the middleware stack to the user. 
+  // We assume that some downstream logic has put the 
+  // response to be returned to the user in the  
+  // context object i.e. "ctx.response". 
+  // This middleware is just adding 
+  // and additional header key-value to it.
   let response = ctx.response
   if (!response.headers["Access-Control-Allow-Origin"]) {
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -367,35 +403,33 @@ func.request(async (ctx, next) => {
 })
 ```
 
-##### 3. Request Logger
+##### 3. Elapsed Time Logger
+
+Logging and monitoring are often challenges 
 
 ```js
 func.request(async (ctx, next) => {
-  let t0 = Date.now()
-  let event = ctx.event
-  ctx.logger.info({ url: , t: t0 })
+  // We have to capture the initial request time
+  // in the "downstream" logic otherwise we won't 
+  // account for the execution that happens downstream.
+  // Ideally, this middleware function will the first 
+  // function in the stack so we account for all other nested
+  // middle functions.
+  let t = Date.now()
+  let id = ctx.context.awsRequestId
   await next()
-  let t1 = Date.now()
-  ctx.logger.info({ url: , t: t1, duration: (t1 - t0) })
+  // This logic happens "upstream" because elapsed 
+  // time needs to account for all downstream AND upstream logic
+  // 
+  // We use Funcmatic's built in JSON-formatted logger
+  // "ctx.logger" to log the 
+  // * id: AWS Lambda request id
+  // * t: The time of the request in ms since epoch
+  // * elapsed: How long the request took in ms
+  ctx.logger.info({ id, t, elapsed: (Date.now() - t) })
   return
 })
 ```
-
-
-
-#### Downstream Execution
-
-*Typical Examples of Downstream Middleware Logic*
-- pre-proccessing the AWS `ctx.event` object 
-- logging request
-- validating and decoding JTW tokens 
-
-
-#### Upstream Logic
-
-*Typical Examples of Upstream Middleware Logic*
-- post processing of the ctx.response object (e.g CORS headers) 
-- logging of response times
 
 ### Middleware Plugins
 
@@ -454,10 +488,10 @@ func.use(new ResponsePlugin())
 
 ### AWS Event and Context
 * [EventPlugin](https://google.com): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
-* [BodyParserPlugin](https://google.com): test 
+* [BodyParserPlugin](https://github.com/funcmaticjs/bodyparser-plugin): Parse common types of event.body content (e.g. application/json, application/x-www-form-urlencoded, multipart/form-data).
 
 ### Authentication and Authorization
-* [Auth0Plugin](https://google.com): Authenticate a token
+* [Auth0Plugin](https://google.com): 
 * [Auth0CachePlugin](https://google.com):  
 
 ### Datastores
@@ -540,3 +574,9 @@ async (ctx, next) {
   return
 }
 ```
+
+#### Using Middleware Functions
+
+To add a middleware function to a lifecycle's middleware stack, just pass the function to a call to `func.env`, `func.start`, `func.request`, `func.error`, `func.teardown`.
+
+For example, 
