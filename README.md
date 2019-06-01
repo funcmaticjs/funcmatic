@@ -479,34 +479,34 @@ let ResponsePlugin = require('@funcmaticjs/response-plugin')
 func.use(new ResponsePlugin())
 ```
 
-## Available Middleware Plugins
+#### Available Middleware Plugins
 
-### Environment Variables and Config
+##### Environment Variables and Config
 * [ProcessEnvPlugin](https://github.com/funcmaticjs/processenv-plugin): Automatically bring all `process.env` variables to `ctx.env`
 * [StageVarsPlugin](https://github.com/funcmaticjs/stagevars-plugin): Set API Gateway Stage Variables in `ctx.env`
 * [ParameterStorePlugin](https://github.com/funcmaticjs/parameterstore-plugin): Fetch environment variables from AWS Parameter Store and set them in `ctx.env`
 
-### AWS Event and Context
+##### AWS Event and Context
 * [EventPlugin](https://google.com): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
 * [BodyParserPlugin](https://github.com/funcmaticjs/bodyparser-plugin): Parse common types of event.body content (e.g. application/json, application/x-www-form-urlencoded, multipart/form-data).
 
-### Authentication and Authorization
+##### Authentication and Authorization
 * [Auth0Plugin](https://github.com/funcmaticjs/auth0-plugin): Verifies an Auth0 JWT token in the 'Authorization' header and puts the decoded token in 'ctx.state.auth'
 
-### Datastores
+##### Datastores
 * [MemoryCachePlugin](https://github.com/funcmaticjs/memory-cache-plugin): Implements a simple in-memory based cache
 * [DynamoDBCachePlugin](https://github.com/funcmaticjs/dynamodb-cache-plugin): Creates a simple async cache interface (get, set, del) around DynamoDB.
 * [MongoDBPlugin](https://github.com/funcmaticjs/mongodb-plugin): Creates and manages a MongoDB connection
 
-### Response 
+##### Response 
 * [ResponsePlugin](https://github.com/funcmaticjs/response-plugin): Express-like HTTP response methods (e.g. res.json(), res.sendFile()) to be used in AWS Lambda Node functions connected to API Gateway using AWS Lambda Proxy Integration.
 
-### Logging and Monitoring
+##### Logging and Monitoring
 * CorrelationPlugin
 * EnableDebugPlugin
 
 
-## Context (`ctx`)
+## The Context Object (`ctx`)
 
 ### `ctx.event` 
 
