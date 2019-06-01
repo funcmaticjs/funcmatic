@@ -405,16 +405,19 @@ func.request(async (ctx, next) => {
 
 ##### 3. Elapsed Time Logger
 
-Logging and monitoring are often challenges 
+Given the distributed nature of serverless, logging and monitoring are common ways to apply middleware. 
+
+If the middleware function below is the topmost function of the *request middleware stack* it will log the elapsed execution time of the entire request middleware stack.
 
 ```js
+  // Ideally, this middleware function will the first 
+  // function added to the 'request' middleware stack 
+  // so that we account for all of the nested 
+  // middleware functions in the stack.
 func.request(async (ctx, next) => {
   // We have to capture the initial request time
   // in the "downstream" logic otherwise we won't 
   // account for the execution that happens downstream.
-  // Ideally, this middleware function will the first 
-  // function in the stack so we account for all other nested
-  // middle functions.
   let t = Date.now()
   let id = ctx.context.awsRequestId
   await next()
@@ -433,53 +436,68 @@ func.request(async (ctx, next) => {
 
 ### Middleware Plugins
 
-Plugins are defined as Javascript classes that define one or more lifecycle-specific middleware functions. The class should have the following structure below (only including the lifecycle methods for which your plugin needs to engage with).
-
+Middleware Plugins are Javascript classes that define one or more lifecycle methods. 
 
 ```js
 class MyMiddlewarePlugin {
-
-  env(ctx, next) { }
+  // Lifecycle middleware methods must be use 
+  // the exact names below to be recognized
+  // by Funcmatic
+  env(ctx, next) { 
+    /* Downstream logic ... */ 
+    await next()
+    /* Upstream logic ... */
+    return
+  }
   start(ctx, next) { }
   request(ctx, next) { }
   error(ctx, next) { }
   teardown(ctx, next) { }
 }
 
+// Adds the individual lifecycle methods 
+// defined above to the appropriate 
+// lifecycle middleware stacks
 func.use(new MyMiddlewarePlugin())
 ```
+**It is recommended that you create and use middleware as *plugins* rather than as individual *functions*.**
+
+Why use plugins rather than individual functions?
+
+1. Plugins are ***easier to understand*** since the all related functionality is in one place and functions are named after the middleware stack that they will be added to.
+2. Plugins are ***easier to use*** since a single call to `func.use(...)` will add multiple methods to their correct lifecycle middleware stack.
 
 
-While Funcmatic supports creating and adding individual function middleware, ***we recommend that you create and use middleware as plugins rather than individual functions***. The reasons are:
+#### Example: Using the response-plugin  
 
-1. It is because it is more self-documenting as async functions which lifecycle
-2. Easier for developers to use since instead of importing/adding each method they just do a `func.use` 
-3. It puts all releveant logic in one place
+The [response-plugin]() creates a `response` object and sets it in the `ctx.response`. This response object makes it format HTTP responses according to AWS's Lambda Proxy Integration format. 
 
-
-#### Using a Published Middleware Plugin 
-
-The [response-plugin]() does blah blah and is accessible via NPM. 
-
-##### 1. First install the plugin 
+##### 1. Install the plugin 
 
 ```
-$> npm install '@funcmaticjs/response-plugin'
+$> npm install -save '@funcmaticjs/response-plugin'
 ```
 
-##### 2. Require the plugin's class, create an instance, and call `func.use`
+##### 2. Add the plugin to your function
+
+There are three steps you must take in your code:
+
+1. Import the `ResponsePlugin` class via `require`
+2. Create an instance of the `ResponsePlugin`
+3. Call `func.use` with the instance
+
+Here is the code below: 
 
 ```js
 let func = require('@funcmaticjs/func')
-
-You can add plugins to your function's middleware stack by calling `use`:
 let ResponsePlugin = require('@funcmaticjs/response-plugin')
-
-// 
 func.use(new ResponsePlugin())
+/* ... */
 ```
 
 #### Available Middleware Plugins
+
+There are already some handy middleware plugins that have been created and ready to use in your functions: 
 
 ##### Environment Variables and Config
 * [ProcessEnvPlugin](https://github.com/funcmaticjs/processenv-plugin): Automatically bring all `process.env` variables to `ctx.env`
@@ -503,8 +521,7 @@ func.use(new ResponsePlugin())
 
 ##### Logging and Monitoring
 * CorrelationPlugin
-* EnableDebugPlugin
-
+* LogLevelPlugin
 
 ## The Context Object (`ctx`)
 
@@ -521,61 +538,23 @@ func.use(new ResponsePlugin())
 ### `ctx.logger` 
 
 
+## The Default Logger (`ctx.logger`)
 ## Unit Testing
 
 
 ##### Unit Testing Plugins
 
+## Contributing
+
+- [Contributor Covenant Code of Conduct](https://github.com/funcmaticjs/funcmatic/blob/master/CODE_OF_CONDUCT.md)
+- [Contributing Guidelines](https://github.com/funcmaticjs/funcmatic/blob/master/CONTRIBUTING.md)
+- [Raising Issues](https://github.com/funcmaticjs/funcmatic/issues)
+- [Submit Pull Requests](https://github.com/funcmaticjs/funcmatic/pulls)
+- [Current Contributors](https://github.com/funcmaticjs/funcmatic/graphs/contributors)
+
+## License
+
+Funcmatic is licensed under the the [MIT License](https://github.com/funcmaticjs/funcmatic/blob/master/LICENSE). Copyright &copy; 2019 Funcmatic Inc.
 
 
-## Documentation
-
-## Running tests
-## Authors
-## Community
-
-# License
-[MIT](https://github.com/koajs/koa/blob/master/LICENSE)
-
-
-
-# scratch
-
-### Middleware Functions
-
-Functio
-* env
-    - Function 1
-    - User env handler function
-* start
-    - Function 1
-    - Function 2
-    - User function
-* request
-    - Function 1
-    - User function
-
-```js
-// Middleware async function which 
-// parses the body as JSON 
-async (ctx, next) {
-  // Middleware logic to run BEFORE 
-
-  // Middleware must call next() which invokes
-  // the subsequent middleware (or user code) 
-  // in the stack.
-  await next()
-
-  // Middleware logic to run AFTER control is passed back
-  // 
-  // After this middleware returns, control will
-  // be passed to the previous middleware
-  return
-}
-```
-
-#### Using Middleware Functions
-
-To add a middleware function to a lifecycle's middleware stack, just pass the function to a call to `func.env`, `func.start`, `func.request`, `func.error`, `func.teardown`.
-
-For example, 
+All files located in the node_modules and external directories are externally maintained libraries used by this software which have their own licenses; we recommend you read them, as their terms may differ from the terms in the MIT License.
