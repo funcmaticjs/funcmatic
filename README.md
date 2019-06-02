@@ -287,8 +287,6 @@ func.teardown(async (ctx) => {
 
 ## Middleware
 
-[Middleware graphic here]
-
 One of the primary benefits of using Funcmatic is being able to package common logic into middleware and reuse it our functions.
 
 Funcmatic's middleware design is based on [Koa.js](https://github.com/koajs/koa). Since each lifecycle handler has its own entrypoint of execution (i.e. env, start, request, error), this means that each lifecycle handler can be configured with its own middleware stack. 
@@ -520,8 +518,9 @@ There are already some handy middleware plugins that have been created and ready
 * [ResponsePlugin](https://github.com/funcmaticjs/response-plugin): Express-like HTTP response methods (e.g. res.json(), res.sendFile()) to be used in AWS Lambda Node functions connected to API Gateway using AWS Lambda Proxy Integration.
 
 ##### Logging and Monitoring
-* CorrelationPlugin
-* LogLevelPlugin
+* [CorrelationPlugin](https://github.com/funcmaticjs/correlation-plugin): Sets 'x-correlation-id' in 'ctx.logger' so that log messages can be correlated across different functions and services.
+* [LogLevelPlugin](https://github.com/funcmaticjs/loglevel-plugin): Uses the 'X-Log-Level' or 'X-Correlation-Log-Level' headers to dynamically set the log level of ctx.logger.
+* [AccessLogPlugin](https://github.com/funcmaticjs/accesslog-plugin): Log a JSON line at the end of a request using NGINX access_log format.
 
 ## The Context Object (`ctx`)
 
