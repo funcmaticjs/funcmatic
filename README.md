@@ -537,7 +537,22 @@ There are already some handy middleware plugins that have been created and ready
 ### `ctx.logger` 
 
 
-## The Default Logger (`ctx.logger`)
+## Logging using `ctx.logger`
+
+### Logging Messages
+
+### Log Level
+
+Supports 
+
+### Setting Metadata
+
+You can add metadata to the logger which will 
+
+### Pretty Logs
+
+When in development it can be difficult to interpret logs JSON format. Turn on pretty logging by ...
+
 ## Unit Testing
 
 

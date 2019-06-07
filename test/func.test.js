@@ -30,7 +30,7 @@ describe('Func Cold Start', () => {
   })
 })
 
-describe('Func Env', async () => {
+describe('Func Env', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
@@ -272,7 +272,6 @@ class UserFunc {
     }
   }
   async teardown() {
-    console.log("user teardown", this)
     this.teardowninvoked = true
   }
 }
