@@ -1,7 +1,14 @@
 
-[![Funcmatic Serverless Middlew Framework for AWS Lambda](https://funcmaticjs.com/img/Logo@2x.png)](http://funcmaticjs.com)
+[![Funcmatic Serverless Middleware Framework for AWS Lambda](https://funcmaticjs.com/img/Logo@2x.png)](http://funcmaticjs.com)
 
-## Introduction
+[![funcmaticjs](https://img.shields.io/badge/funcmaticjs-F-red.svg)](https://funcmaticjs.com) [![npm version](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic.svg)](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic) 
+
+## Contents
+
+- [Introduction](#intro)
+- [Installation](#install)
+
+## <a name="intro"></a>Introduction
 
 Funcmatic helps you develop more complex serverless functions that respond to web requests. What [Express](https://github.com/expressjs/express) is for building Node.js web servers, Funcmatic is for building Node.js web functions with AWS API Gateway and Lambda. 
  
@@ -38,7 +45,7 @@ If Funcmatic doesn't quite suit your project (or your tastes) here are some othe
 * [Lambcycle](https://github.com/juliantellez/lambcycle): Lambcycle is a declarative lambda middleware. Its main purpose is to let you focus on the specifics of your application by providing a configuration cycle.
 * [Lambda API](https://github.com/jeremydaly/lambda-api): Lightweight web framework for your serverless applications.
 
-## Installation
+## <a name="install"></a>Installation
 
 Funcmatic requires **node v8.10** or higher. 
 
