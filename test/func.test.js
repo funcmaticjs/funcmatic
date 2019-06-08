@@ -28,6 +28,14 @@ describe('Func Cold Start', () => {
     let t = (new Date()).getTime()
     expect(func.expiresAt).toBeGreaterThan(t)
   })
+  it ('should clear expiration if set to zero', async () => {
+    func.setExpiration(50)
+    await func.invokeStart(ctx)
+    func.setExpiration(0)
+    await wait(100)
+    await func.invokeStart(ctx)
+    expect(func.expiresAt).toBe(null)
+  })
 })
 
 describe('Func Env', () => {

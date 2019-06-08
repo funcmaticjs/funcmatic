@@ -1,24 +1,27 @@
 
 [![Funcmatic Serverless Middleware Framework for AWS Lambda](https://funcmaticjs.com/img/Logo@2x.png)](http://funcmaticjs.com)
 
-[![funcmaticjs](https://img.shields.io/badge/funcmaticjs-F-red.svg)](https://funcmaticjs.com) [![npm version](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic.svg)](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic) 
+[![npm version](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic.svg)](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic) 
 
 ## Contents
 
 - [Introduction](#intro)
 - [Installation](#install)
+- [Lifecycle Handlers](#lifecycle)
+- [Middleware](#middleware)
+- [Testing](#testing)
+- [Alternatives](#alternatives)
 
 ## <a name="intro"></a>Introduction
 
 Funcmatic helps you develop more complex serverless functions that respond to web requests. What [Express](https://github.com/expressjs/express) is for building Node.js web servers, Funcmatic is for building Node.js web functions with AWS API Gateway and Lambda. 
  
-### Key Features
+#### Key Features
  
 - Organize function logic into distinct lifecycle handlers.
 - Create and reuse middleware across functions.
  
-### Lightweight Approach
-
+#### Lightweight Approach
 
 - The core framework is a single file less than 400 lines.
 - Vanilla Javascript and does not use any Node specific modules (e.g. net/http, os, fs).
@@ -32,18 +35,10 @@ Funcmatic is able to be so lightweight because it:
 - Does not help with packaging, deployment, provisioning, configuration.
 - Has no aspirations to support “multi-cloud” environments (e.g. Azure Functions, Google Cloud Functions).
 
-### Compatibility with Other Frameworks
+#### Compatibility with Other Frameworks
 
 Because Funcmatic only focuses on helping you organize the internal logic of your function, it works great with other serverless frameworks that help with packaging, configuration, and deployment (e.g. [Serverless Framework](https://github.com/serverless/serverless), [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli)).
 
-### Alternatives to Funcmatic
-
-If Funcmatic doesn't quite suit your project (or your tastes) here are some other projects that might be useful:
-* [serverless-http](https://github.com/dougmoscrop/serverless-http): Use your existing middleware framework (e.g. Express, Koa) in AWS Lambda.
-* [serverless-compose](https://github.com/DavidJFelix/serverless-compose): A lightweight middleware framework for AWS lambda.
-* [Middy](https://github.com/middyjs/middy): The stylish Node.js middleware engine for AWS Lambda.
-* [Lambcycle](https://github.com/juliantellez/lambcycle): Lambcycle is a declarative lambda middleware. Its main purpose is to let you focus on the specifics of your application by providing a configuration cycle.
-* [Lambda API](https://github.com/jeremydaly/lambda-api): Lightweight web framework for your serverless applications.
 
 ## <a name="install"></a>Installation
 
@@ -82,7 +77,7 @@ Checkout some of the commented [examples](https://github.com/funcmaticjs/example
 * More examples coming soon ...
 
 
-## Lifecycle Handlers
+## <a href="lifecycle"></a>Lifecycle Handlers
 
 AWS Lambda gives a [single entrypoint](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html) to execute all of our function's logic.
 
@@ -292,7 +287,7 @@ func.teardown(async (ctx) => {
 })
 ```
 
-## Middleware
+## <a name="intro"></a>Middleware
 
 One of the primary benefits of using Funcmatic is being able to package common logic into middleware and reuse it our functions.
 
@@ -510,7 +505,7 @@ There are already some handy middleware plugins that have been created and ready
 * [ParameterStorePlugin](https://github.com/funcmaticjs/parameterstore-plugin): Fetch environment variables from AWS Parameter Store and set them in `ctx.env`
 
 ##### AWS Event and Context
-* [EventPlugin](https://google.com): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
+* [EventPlugin](https://github.com/funcmaticjs/event-plugin): Makes working with AWS API Gateway's Lambda Proxy Integration event a little more friendly.
 * [BodyParserPlugin](https://github.com/funcmaticjs/bodyparser-plugin): Parse common types of event.body content (e.g. application/json, application/x-www-form-urlencoded, multipart/form-data).
 
 ##### Authentication and Authorization
@@ -529,24 +524,166 @@ There are already some handy middleware plugins that have been created and ready
 * [LogLevelPlugin](https://github.com/funcmaticjs/loglevel-plugin): Uses the 'X-Log-Level' or 'X-Correlation-Log-Level' headers to dynamically set the log level of ctx.logger.
 * [AccessLogPlugin](https://github.com/funcmaticjs/accesslog-plugin): Log a JSON line at the end of a request using NGINX access_log format.
 
-## The Context Object (`ctx`)
+## <a name="context"></a>The Context Object (`ctx`)
+
+The context object (`ctx`) is the shared state between AWS Lambda, the Funcmatic framework, middleware, and your function's unique code. It is the interface in which information is passed between each of these layers. 
 
 ### `ctx.event` 
 
+Initialized to be the event created by AWS Lambda when your function is invoked. Funcmatic is primarily designed to be build HTTP APIs, this will most likely be an event in API Gateway Lambda Proxy Integration event format. 
+
+Here is an [example](https://github.com/funcmaticjs/funcmatic/blob/master/test/data/api-gateway-aws-proxy.json) of what the `ctx.event` object could look like.
+
+*Note that some middleware, such as [EventPlugin](https://github.com/funcmaticjs/event-plugin), may alter the original AWS event.*
+
+Some notable properties of the `ctx.event` object are:
+
+- ``:
+
+### `ctx.context`
+
+Initialized to be the [AWS Lambda Context object](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html) created by AWS Lambda when your function is invoked. 
+
+Unlike the AWS event above, the format of this context object remains consistent and independent of what service invoked your function (e.g. API Gateway, S3).
+
+Some notable properties of the `ctx.context` object are:
+
+- `awsRequestId`
+  - Unique string for every invocation of your function (e.g. )
+- `functionName`
+  - The name you gave your function when creating it in AWS Lambda 
+- `functionVersion`
+  - The version of your function that is being invoked (e.g. )
+- `invokedFunctionArn` 
+  - The full ARN. If your function was invoked using an [alias]() this is the only way to figure that out.
+- `callbackWaitsForEmptyEventLoop`
+  - Funcmatic sets this value to `false`. 
+    - This means that when the `request` handler completes, AWS Lambda will immediately return the value in `ctx.response` even if the Node.js event loop is not empty.
+  - If you want to change the default behavior your can set this value to `true`. Which means that AWS Lambda will wait for the Node.js event loop to be empty before returning the response.
+    - `ctx.context.callbackWaitsForEmptyEventLoop = true`
+
 ### `ctx.response` 
+
+This is what needs to be set by your function before it completes execution. This is the value that will be returned to AWS Lambda and ultimately back to the requesting client. 
+
+Assumming that you are using API Gateway and it's [Lambda Proxy Integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html) then the response must be an object with the following structure:
+
+```js
+{
+  "statusCode": httpStatusCode, /* e.g. 200 */
+  "headers": { 
+    "headerName": "headerValue", 
+    ... 
+  },
+  "multiValueHeaders": { 
+    "headerName": ["headerValue", "headerValue2" ]
+  },
+  "body": "...",
+  "isBase64Encoded": true|false
+}
+```
+
+If your function is returning a JSON object:
+
+```js
+{
+  "statusCode": 200, // Internal Server Error
+  "headers": {
+    "Content-Type": "application/json; charset=utf-8"
+  },
+  "body": "{\"hello\":\"world\"}",
+  "isBase64Encoded": false
+}
+```
+
+If your function is returning binary data (e.g. an jpeg image):
+
+```js
+{
+  "statusCode": 200, // Internal Server Error
+  "headers": {
+    "Content-Type": "image/jpeg"
+  },
+  "body": "/9j/2wBDAAMCAgICAgMCAgIDAw...", // Base64 encoded image data 
+  "isBase64Encoded": true
+}
+```
+
+If you are returning an HTTP error: 
+
+```js
+{
+  "statusCode": 500, // Internal Server Error
+  "headers": {
+    "Content-Type": "application/json; charset=utf-8"
+  },
+  "body": "{\"errorMessage\":\"My error message\"}",
+  "isBase64Encoded": false
+}
+```
+
+The [ResponsePlugin](https://github.com/funcmaticjs/response-plugin) is intended to help abstract the specifics of API Lambda Proxy format. We can produce the equivalent response in the examples above by:
+
+```js
+async (ctx) => {
+  ctx.response.json({ hello: 'world'})
+  ctx.response.blob("image.jpeg")
+  ctx.response.httperror(500, 'My error message')
+}
+```
 
 ### `ctx.env`
 
+This is intended to contain all the configuration values that your function needs. When your function is first cold started, Funcmatic will initialize `ctx.env` to an empty object `{}`. But unlike `event`, `context`, and `state`, the values you choose to store in `ctx.env` will be preserved across invocations.
+
+The single responsibility of your function's `env` handler is to fetch configuration values and populate them in `ctx.env`. The benefits of this is that it isolates the complexity of where your config is stored (e.g. `process.env`, AWS Parameter Store, API Gateway Stage Variables), to a single handler (`env`) and beyond that point the rest of your function's logic only needs to interact with the `ctx.env` object.
+
 ### `ctx.state`
+
+This is initialized to an empty object `{}` upon every invocation of your function whether it is a cold or warm start. It borrows its purpose from Express as the recommended place to pass data between middleware and your function's logic. The Funcmatic framework does not do anything directly with this object except initialize it to `{}`.
+
+For example, if you use the [MongoDBPlugin](https://github.com/funcmaticjs/mongodb-plugin), it will create a connection to a MongoDB server and sets the connection in `ctx.state.mongodb`.
+
+```js
+ctx.state.mongodb = await connectToMongoDB()
+```
+
+Then your own function's code can access the connection:
+
+```js
+async (ctx) => {
+  let userid = ctx.event.queryStringParameters['userid']
+  let db = ctx.state.mongodb
+  let user = await db.findOne({ userid })
+  /* ... */
+}
+```
 
 ### `ctx.coldstart`
 
+This is a literal boolean value (`true` or `false`).
+
+- `true`: This current invocation of your function is a cold start meaning that the `event` and `start` handlers will be invoked as part of this invocation.
+- `false`: This current invocation is NOT a cold start (i.e. a warm start) and therefore the `event` and `start` handlers will not be invoked as part of this invocation.
+
 ### `ctx.logger` 
 
+Funcmatic provides a default JSON logger `ctx.logger`. See *Logging using `ctx.logger`* section for more detailed info.
 
-## Logging using `ctx.logger`
+### `ctx.func`
+
+A reference of this currently executing Funcmatic function. Most middleware and your function will not need to reference this.
+
+## Logging using the Default Logger
+
+Funcmatic has a very basic structured JSON logger (`ConsoleLogger`) and sets `ctx.logger` to it by default. 
+
+*Why use structured JSON logging in your function? Check out Yan Cui's post, [You need to use structured logging with AWS Lambda](https://hackernoon.com/you-need-to-use-structured-logging-with-aws-lambda-f3af9586d6a8).*
 
 ### Logging Messages
+
+Funcmatic's default logger supports all the standard [Log4J Log Levels](https://en.wikipedia.org/wiki/Log4j#Log4j_log_levels): `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `off`.
+
 
 ### Log Level
 
@@ -560,10 +697,20 @@ You can add metadata to the logger which will
 
 When in development it can be difficult to interpret logs JSON format. Turn on pretty logging by ...
 
-## Unit Testing
+## <a href="testing"></a>Unit Testing
 
 
 ##### Unit Testing Plugins
+
+## <a href="alternatives"></a>Alternatives 
+
+If Funcmatic doesn't quite suit your project (or your tastes) here are some other projects that might be useful:
+
+- [serverless-http](https://github.com/dougmoscrop/serverless-http): Use your existing middleware framework (e.g. Express, Koa) in AWS Lambda.
+- [serverless-compose](https://github.com/DavidJFelix/serverless-compose): A lightweight middleware framework for AWS lambda.
+- [Middy](https://github.com/middyjs/middy): The stylish Node.js middleware engine for AWS Lambda.
+- [Lambcycle](https://github.com/juliantellez/lambcycle): Lambcycle is a declarative lambda middleware. Its main purpose is to let you focus on the specifics of your application by providing a configuration cycle.
+- [Lambda API](https://github.com/jeremydaly/lambda-api): Lightweight web framework for your serverless applications.
 
 ## Contributing
 
