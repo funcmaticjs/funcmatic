@@ -96,6 +96,11 @@ describe('Levels', () => {
 
     expect(logger.debug('should be logged now')).toBeTruthy()
   })
+  it ("should support log level of 'off'", async () => {
+    logger.level('off')
+    expect(logger.level()).toEqual('off')
+    expect(logger.fatal("should NOT be logged")).toBeFalsy()
+  })
 })
 
 describe('Logging Errors', () => {
