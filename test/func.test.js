@@ -232,6 +232,73 @@ describe('Func Teardown', () => {
   })
 })
 
+describe('Func Logger', () => {
+  let func = null
+  let ctx = null
+  beforeEach(async () => {
+    func = new f.create()
+    ctx = createEmptyCtx()
+  })
+  it ('should initialize with logger with system metadata', async () => {
+    expect(func.logger.meta()).toMatchObject({
+      component: "funcmatic",
+      lifecycle: "system"
+    })
+  })
+  it ('should restore system metadata after env completes', async () => {
+    func.env(async (ctx) => {
+      expect(ctx.logger.meta()).toMatchObject({
+        component: "AsyncFunction:[anonymous]",
+        lifecycle: "env"
+      })
+    })
+    await func.invokeEnv(ctx)
+    expect(ctx.logger.meta()).toMatchObject({
+      component: "funcmatic",
+      lifecycle: "system"
+    })
+  })
+  it ('should restore system metadata after start completes', async () => {
+    func.start(async (ctx) => {
+      expect(ctx.logger.meta()).toMatchObject({
+        component: "AsyncFunction:[anonymous]",
+        lifecycle: "start"
+      })
+    })
+    await func.invokeStart(ctx)
+    expect(ctx.logger.meta()).toMatchObject({
+      component: "funcmatic",
+      lifecycle: "system"
+    })
+  })
+  it ('should restore system metadata after request completes', async () => {
+    func.request(async (ctx) => {
+      expect(ctx.logger.meta()).toMatchObject({
+        component: "AsyncFunction:[anonymous]",
+        lifecycle: "request"
+      })
+    })
+    await func.invokeRequest(ctx)
+    expect(ctx.logger.meta()).toMatchObject({
+      component: "funcmatic",
+      lifecycle: "system"
+    })
+  })
+  it ('should restore system metadata after error completes', async () => {
+    func.error(async (ctx) => {
+      expect(ctx.logger.meta()).toMatchObject({
+        component: "AsyncFunction:[anonymous]",
+        lifecycle: "error"
+      })
+    })
+    await func.invokeError(ctx)
+    expect(ctx.logger.meta()).toMatchObject({
+      component: "funcmatic",
+      lifecycle: "system"
+    })
+  })
+})
+
 function createEmptyCtx() {
   return {
     event: { },
