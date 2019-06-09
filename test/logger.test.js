@@ -1,35 +1,64 @@
 const f = require('../lib/func')
 
-describe('Metadata', () => {
+describe('Logger Fields', () => {
   let logger = null
   beforeEach(async () => {
-    logger = new f.ConsoleLogger()
+    logger = new f.LoggerWrapper()
   })
-  it ('should set metadata', async () => {
-    logger.meta({ meta: 'data' })
-    expect(logger.meta()).toMatchObject({
+  it ('should set state fields', async () => {
+    logger.state({ meta: 'data' })
+    expect(logger.state()).toMatchObject({
       meta: 'data'
     })
   })
-  it ('should clear metadata', async () => {
-    logger.meta({ meta: 'data' })
-    logger.meta(null) // this won't clear it because value must be false
-    expect(logger.meta()).toMatchObject({
+  it ('should clear state fields', async () => {
+    logger.state({ meta: 'data' })
+    logger.state(null) // this won't clear it because value must be false
+    expect(logger.state()).toMatchObject({
       meta: 'data'
     })
-    logger.meta(false) 
-    expect(logger.meta()).toEqual({})
+    logger.state(false) 
+    expect(logger.state()).toEqual({})
   })
-  it ('should replace metadata', async () => {
-    logger.meta({ meta: 'data', hello: 'world' })
-    logger.meta({ foo: 'bar' }, { replace: true })
-    expect(logger.meta()).toEqual({
+  it ('should replace state fields', async () => {
+    logger.state({ meta: 'data', hello: 'world' })
+    logger.state({ foo: 'bar' }, { replace: true })
+    expect(logger.state()).toEqual({
       foo: 'bar'
     })
   })
-  it ('should merge metadata in plain string log message', async () => {
-    logger.meta({ meta: 'data' })
-    expect(logger.info("hello world")[0]).toMatchObject({
+  it ('should merge state fields in plain string log message', async () => {
+    logger.state({ meta: 'data' })
+    expect(logger.info("hello world")).toMatchObject({
+      meta: 'data',
+      msg: 'hello world'
+    })
+  })
+  it ('should set env fields', async () => {
+    logger.env({ meta: 'data' })
+    expect(logger.env()).toMatchObject({
+      meta: 'data'
+    })
+  })
+  it ('should clear state fields', async () => {
+    logger.env({ meta: 'data' })
+    logger.env(null) // this won't clear it because value must be false
+    expect(logger.env()).toMatchObject({
+      meta: 'data'
+    })
+    logger.env(false) 
+    expect(logger.env()).toEqual({})
+  })
+  it ('should replace state fields', async () => {
+    logger.env({ meta: 'data', hello: 'world' })
+    logger.env({ foo: 'bar' }, { replace: true })
+    expect(logger.env()).toEqual({
+      foo: 'bar'
+    })
+  })
+  it ('should merge state fields in plain string log message', async () => {
+    logger.env({ meta: 'data' })
+    expect(logger.info("hello world")).toMatchObject({
       meta: 'data',
       msg: 'hello world'
     })
@@ -39,23 +68,23 @@ describe('Metadata', () => {
 describe('Messages', () => {
   let logger = null
   beforeEach(async () => {
-    logger = new f.ConsoleLogger()
+    logger = new f.LoggerWrapper()
   })
   it ("should set standard fields 'level' and 'time' in the log message", async () => {
-    expect(logger.info('hello world')[0]).toMatchObject({
-      level: 'info',
-      leveln: 30,
+    expect(logger.info('hello world')).toMatchObject({
+      level: 30,
+      level_name: 'info',
       time: expect.anything()
     })
-    expect(logger.error('error!')[0]).toMatchObject({
-      level: 'error',
-      leveln: 50, 
+    expect(logger.error('error!')).toMatchObject({
+      level: 50,
+      level_name: 'error', 
       time: expect.anything()
     })
   })
   it ('should merge metadata in an object log message', async () => {
-    logger.meta({ meta: 'data' })
-    expect(logger.info({ hello: 'world' })[0]).toMatchObject({
+    logger.state({ meta: 'data' })
+    expect(logger.info({ hello: 'world' })).toMatchObject({
       meta: 'data',
       hello: 'world'
     })
@@ -65,7 +94,7 @@ describe('Messages', () => {
 describe('Levels', () => { 
   let logger = null
   beforeEach(async () => {
-    logger = new f.ConsoleLogger()
+    logger = new f.LoggerWrapper()
   })
   it ("should not log lower level messages based on level", async () => {
     expect(logger.debug('should NOT be logged')).toBeFalsy()
@@ -121,7 +150,7 @@ describe('Levels', () => {
 describe('Logging Errors', () => {
   let logger = null
   beforeEach(async () => {
-    logger = new f.ConsoleLogger()
+    logger = new f.LoggerWrapper()
   })
   it ("should log error objects", async () => {
     logger.error(new Error("my error"))
@@ -131,12 +160,12 @@ describe('Logging Errors', () => {
 describe('Prettify', () => {
   let logger = null 
   beforeEach(async () => {
-    logger = new f.ConsoleLogger({ prettify: (line) => {
+    logger = new f.LoggerWrapper({ prettify: (line) => {
       return `PRETTY: ${line.msg}`
     }})
   })
   it ("should print pretty logs", async () => {
-    let ret = logger.info("hello world")
-    expect(ret[0]).toEqual("PRETTY: hello world")
+    let line = logger.info("hello world")
+    expect(line).toEqual("PRETTY: hello world")
   })
 })

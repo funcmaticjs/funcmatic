@@ -315,67 +315,67 @@ describe('Func Logger', () => {
     ctx = createEmptyCtx()
   })
   it ('should initialize with logger with system metadata', async () => {
-    expect(func.logger.meta()).toMatchObject({
-      component: "funcmatic",
+    expect(func.logger.state()).toMatchObject({
+      src: "funcmatic",
       lifecycle: "system"
     })
   })
   it ('should restore system metadata after env completes', async () => {
     func.env(async (ctx) => {
-      expect(ctx.logger.meta()).toMatchObject({
-        component: "AsyncFunction:[anonymous]",
+      expect(ctx.logger.state()).toMatchObject({
+        src: "AsyncFunction:[anonymous]",
         lifecycle: "env"
       })
     })
     await func.invokeEnv(ctx)
-    expect(ctx.logger.meta()).toMatchObject({
-      component: "funcmatic",
+    expect(ctx.logger.state()).toMatchObject({
+      src: "funcmatic",
       lifecycle: "system"
     })
   })
   it ('should restore system metadata after start completes', async () => {
     func.start(async (ctx) => {
-      expect(ctx.logger.meta()).toMatchObject({
-        component: "AsyncFunction:[anonymous]",
+      expect(ctx.logger.state()).toMatchObject({
+        src: "AsyncFunction:[anonymous]",
         lifecycle: "start"
       })
     })
     await func.invokeStart(ctx)
-    expect(ctx.logger.meta()).toMatchObject({
-      component: "funcmatic",
+    expect(ctx.logger.state()).toMatchObject({
+      src: "funcmatic",
       lifecycle: "system"
     })
   })
   it ('should restore system metadata after request completes', async () => {
     func.request(async (ctx) => {
-      expect(ctx.logger.meta()).toMatchObject({
-        component: "AsyncFunction:[anonymous]",
+      expect(ctx.logger.state()).toMatchObject({
+        src: "AsyncFunction:[anonymous]",
         lifecycle: "request"
       })
     })
     await func.invokeRequest(ctx)
-    expect(ctx.logger.meta()).toMatchObject({
-      component: "funcmatic",
+    expect(ctx.logger.state()).toMatchObject({
+      src: "funcmatic",
       lifecycle: "system"
     })
   })
   it ('should restore system metadata after error completes', async () => {
     func.error(async (ctx) => {
-      expect(ctx.logger.meta()).toMatchObject({
-        component: "AsyncFunction:[anonymous]",
+      expect(ctx.logger.state()).toMatchObject({
+        src: "AsyncFunction:[anonymous]",
         lifecycle: "error"
       })
     })
     await func.invokeError(ctx)
-    expect(ctx.logger.meta()).toMatchObject({
-      component: "funcmatic",
+    expect(ctx.logger.state()).toMatchObject({
+      src: "funcmatic",
       lifecycle: "system"
     })
   })
   it ('should not pretty print logs by default', async () => {
     func.request(async (ctx) => {
-      let ret = ctx.logger.info("hello world")
-      expect(ret[0]).toMatchObject({
+      let line = ctx.logger.info("hello world")
+      expect(line).toMatchObject({
         msg: "hello world"
       })
     })
@@ -386,8 +386,8 @@ describe('Func Logger', () => {
       return `PRETTY: ${line.msg}`
     }})
     fpretty.request(async (ctx) => {
-      let ret = ctx.logger.info("hello world")
-      expect(ret[0]).toEqual("PRETTY: hello world")
+      let line = ctx.logger.info("hello world")
+      expect(line).toEqual("PRETTY: hello world")
     })
     await fpretty.invokeRequest(ctx)
   })

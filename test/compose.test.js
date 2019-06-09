@@ -5,7 +5,7 @@ describe('Compose', () => {
   let ctx = null
   beforeEach(async () => {
     ctx = { 
-      logger: new f.ConsoleLogger({ LOG_LEVEL: process.env.LOG_LEVEL })
+      logger: new f.LoggerWrapper({ LOG_LEVEL: process.env.LOG_LEVEL })
     }
   })
   it ('should set the logger metadata', async () => {
@@ -14,35 +14,35 @@ describe('Compose', () => {
     let mw = compose([ mw0, mw1, plugin.request, async (ctx) => {
       expect(ctx.stack.length).toBe(4)
       expect(ctx.stack[0]).toMatchObject({
-        component: "AsyncFunction:mw0",
+        src: "AsyncFunction:mw0",
         tbmw: expect.anything(),
         tbnmw: expect.anything(),
         tanmw: 0,
         tamw: 0
       })
       expect(ctx.stack[1]).toMatchObject({
-        component: "AsyncFunction:mw1",
+        src: "AsyncFunction:mw1",
         tbmw: expect.anything(),
         tbnmw: expect.anything(),
         tanmw: 0,
         tamw: 0
       })
       expect(ctx.stack[2]).toMatchObject({
-        component: "MyPlugin:request",
+        src: "MyPlugin:request",
         tbmw: expect.anything(),
         tbnmw: expect.anything(),
         tanmw: 0,
         tamw: 0
       })
       expect(ctx.stack[3]).toMatchObject({
-        component: "AsyncFunction:[anonymous]",
+        src: "AsyncFunction:[anonymous]",
         tbmw: expect.anything(),
         tbnmw: 0,
         tanmw: 0,
         tamw: 0
       })
-      expect(ctx.logger.meta()).toMatchObject({
-        component: 'AsyncFunction:[anonymous]'
+      expect(ctx.logger.state()).toMatchObject({
+        src: 'AsyncFunction:[anonymous]'
       })
 
       // Verify that our timers are called in the correct sequence
@@ -94,17 +94,17 @@ describe('Compose', () => {
 })
 
 async function mw0(ctx, next) {
-  expect(ctx.logger.meta()).toMatchObject({
-    component: 'AsyncFunction:mw0'
+  expect(ctx.logger.state()).toMatchObject({
+    src: 'AsyncFunction:mw0'
   })
   await wait(100)
   await next()
-  expect(ctx.logger.meta()).toMatchObject({
-    component: 'AsyncFunction:mw0'
+  expect(ctx.logger.state()).toMatchObject({
+    src: 'AsyncFunction:mw0'
   })
   let stack = ctx.stack[ctx.stack.length-1]
   expect(stack).toMatchObject({
-    component: 'AsyncFunction:mw0',
+    src: 'AsyncFunction:mw0',
     tbmw: expect.anything(),
     tbnmw: expect.anything(),
     tanmw: expect.anything(),
@@ -115,16 +115,16 @@ async function mw0(ctx, next) {
 }
 
 async function mw1(ctx, next) {
-  expect(ctx.logger.meta()).toMatchObject({
-    component: 'AsyncFunction:mw1'
+  expect(ctx.logger.state()).toMatchObject({
+    src: 'AsyncFunction:mw1'
   })
   await wait(100)
   await next()
-  expect(ctx.logger.meta()).toMatchObject({
-    component: 'AsyncFunction:mw1'
+  expect(ctx.logger.state()).toMatchObject({
+    src: 'AsyncFunction:mw1'
   })
   expect(ctx.stack[ctx.stack.length-1]).toMatchObject({
-    component: 'AsyncFunction:mw1',
+    src: 'AsyncFunction:mw1',
     tbmw: expect.anything(),
     tbnmw: expect.anything(),
     tanmw: expect.anything(),
@@ -146,16 +146,16 @@ class MyPlugin {
     await next()
   }
   async request(ctx, next) {
-    expect(ctx.logger.meta()).toMatchObject({
-      component: 'MyPlugin:request'
+    expect(ctx.logger.state()).toMatchObject({
+      src: 'MyPlugin:request'
     })
     await wait(100)
     await next()
-    expect(ctx.logger.meta()).toMatchObject({
-      component: 'MyPlugin:request'
+    expect(ctx.logger.state()).toMatchObject({
+      src: 'MyPlugin:request'
     }) 
     expect(ctx.stack[ctx.stack.length-1]).toMatchObject({
-      component: 'MyPlugin:request',
+      src: 'MyPlugin:request',
       tbmw: expect.anything(),
       tbnmw: expect.anything(),
       tanmw: expect.anything(),
