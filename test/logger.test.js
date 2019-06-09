@@ -81,6 +81,41 @@ describe('Levels', () => {
     expect(logger.level()).toEqual('off')
     expect(logger.fatal("should NOT be logged")).toBeFalsy()
   })
+  it ("should log trace level", async () => {
+    expect(logger.trace("should NOT be logged")).toBeFalsy()
+    logger.level('trace')
+    expect(logger.trace("should be logged")).toBeTruthy()
+  })
+  it ("should log debug level", async () => {
+    logger.level('info')
+    expect(logger.debug("should NOT be logged")).toBeFalsy()
+    logger.level('debug')
+    expect(logger.debug("should be logged")).toBeTruthy()
+  })
+  it ("should log info level", async () => {
+    logger.level('warn')
+    expect(logger.info("should NOT be logged")).toBeFalsy()
+    logger.level('info')
+    expect(logger.info("should be logged")).toBeTruthy()
+  })
+  it ("should log warn level", async () => {
+    logger.level('error')
+    expect(logger.warn("should NOT be logged")).toBeFalsy()
+    logger.level('warn')
+    expect(logger.warn("should be logged")).toBeTruthy()
+  })
+  it ("should log error level", async () => {
+    logger.level('fatal')
+    expect(logger.error("should NOT be logged")).toBeFalsy()
+    logger.level('error')
+    expect(logger.error("should be logged")).toBeTruthy()
+  })
+  it ("should log fatal level", async () => {
+    logger.level('off')
+    expect(logger.fatal("should NOT be logged")).toBeFalsy()
+    logger.level('fatal')
+    expect(logger.fatal("should be logged")).toBeTruthy()
+  })  
 })
 
 describe('Logging Errors', () => {

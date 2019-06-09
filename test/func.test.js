@@ -1,11 +1,50 @@
 const f = require('../lib/func')
 
+describe('Middleware', () => {
+  let func = null
+  let ctx = null
+  beforeEach(async () => {
+    func = new f.Func()
+    ctx = { }
+  })
+  it ('should throw if use is given invalid plugin', async () => {
+    let error = null
+    try {
+      func.use(new InvalidMW())
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Must provide a plugin, function, or array of plugins/functions")
+  })
+  it ('should throw if plugin is given invalid plugin', async () => {
+    let error = null
+    try {
+      func.plugin(new InvalidMW())
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Middleware must be a valid plugin!")
+  })
+  it ('should throw if middleware is not a function', async () => {
+    let error = null
+    try {
+      func.request({ hello: "world" })
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Must provide a plugin, function, or array of plugins/functions")
+  })
+})
+
 describe('Func Cold Start', () => {
   let func = null
   let ctx = null
   beforeEach(async () => {
     func = new f.create()
-    ctx = createEmptyCtx()
+    ctx = { state: { } }
   })
   it ('should be cold start when func is created', async () => {
     expect(func.isColdStart()).toBeTruthy()
@@ -14,26 +53,44 @@ describe('Func Cold Start', () => {
     await func.invokeStart(ctx)
     expect(func.isColdStart()).toBeFalsy()
   })
+  it ('should force a coldstart', async () => {
+    await func.invoke(ctx)
+    expect(ctx.state.coldstart).toBeTruthy()
+    await func.invoke(ctx, { forceColdStart: true })
+    expect(ctx.state.coldstart).toBeTruthy()
+  })
+  it ('should not be a cold start on the second call to invoke', async () => {
+    ctx.state.n = 0
+    func.start(async (ctx) => {
+      ctx.state.n += 1
+    })
+    await func.invoke(ctx)
+    expect(ctx.state.coldstart).toBe(true)
+    expect(ctx.state.n).toBe(1)
+    await func.invoke(ctx)
+    expect(ctx.state.coldstart).toBe(false)
+    expect(ctx.state.n).toBe(1)
+  })
   it ('should be cold start if expired', async () => {
     func.setExpiration(50)
-    await func.invokeStart(ctx)
+    await func.invoke(ctx)
     await wait(100)
     expect(func.isColdStart()).toBeTruthy()
   })
   it ('should adjust expiry after expired', async () => {
     func.setExpiration(50)
-    await func.invokeStart(ctx)
+    await func.invoke(ctx)
     await wait(100)
-    await func.invokeStart(ctx)
+    await func.invoke(ctx)
     let t = (new Date()).getTime()
     expect(func.expiresAt).toBeGreaterThan(t)
   })
   it ('should clear expiration if set to zero', async () => {
     func.setExpiration(50)
-    await func.invokeStart(ctx)
+    await func.invoke(ctx)
     func.setExpiration(0)
     await wait(100)
-    await func.invokeStart(ctx)
+    await func.invoke(ctx)
     expect(func.expiresAt).toBe(null)
   })
 })
@@ -149,6 +206,24 @@ describe('Func Request', () => {
   it('should NOT set the response in the ctx', async () => {
     await func.invokeRequest(ctx)
     expect(ctx.response).toBeFalsy()
+  })
+})
+
+describe('Func Error', () => {
+  let func = null
+  let ctx = null
+  beforeEach(async () => {
+    func = new f.create()
+    ctx = createEmptyCtx()
+  })
+  it ('should just log if error handler throws error', async () => {
+    func.request(async (ctx) => {
+      throw new Error("Error from request handler")
+    })
+    func.error(async (ctx) => {
+      throw new Error("Error from error handler")
+    })
+    await func.invoke(ctx)
   })
 })
 
@@ -321,7 +396,15 @@ describe('Func Logger', () => {
 function createEmptyCtx() {
   return {
     event: { },
-    context: { }
+    context: { },
+    state: { }
+  }
+}
+
+class InvalidMW {
+
+  async blah(ctx, next) {
+
   }
 }
 

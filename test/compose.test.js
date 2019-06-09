@@ -60,22 +60,38 @@ describe('Compose', () => {
     // everything should be popped off
     expect(ctx.stack.length).toBe(0)
   })
-})
-
-describe('Func Plugins', () => {
-  let func = null
-  let ctx = null
-  beforeEach(async () => {
-    func = f.create()
-    func.plugin(new MyPlugin())
-    func.plugin(new MyOtherPlugin())
-    ctx = { }
+  it ('should throw if not given an array', async () => {
+    let error = null
+    try {
+      compose(mw0)
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Middleware stack must be an array!")
   })
-  it ('should do the right thing', async () => {
-    await func.invoke(ctx)
+  it ('should throw if not given an array of functions', async () => {
+    let error = null
+    try {
+      compose([ mw1, { hello: "world" } ])
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Middleware must be composed of functions!")
+  })
+  it ('should throw if middleware call next twice', async () => {
+    let stack = compose([ mw1, multiplenext ])
+    let error = null
+    try {
+      await stack(ctx)
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("next() called multiple times")
   })
 })
-
 
 async function mw0(ctx, next) {
   expect(ctx.logger.meta()).toMatchObject({
@@ -115,6 +131,11 @@ async function mw1(ctx, next) {
     tamw: 0
   })
   await wait(100)
+}
+
+async function multiplenext(ctx, next) {
+  await next()
+  await next()
 }
 
 class MyPlugin {
