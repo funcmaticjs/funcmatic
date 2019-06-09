@@ -297,6 +297,25 @@ describe('Func Logger', () => {
       lifecycle: "system"
     })
   })
+  it ('should not pretty print logs by default', async () => {
+    func.request(async (ctx) => {
+      let ret = ctx.logger.info("hello world")
+      expect(ret[0]).toMatchObject({
+        msg: "hello world"
+      })
+    })
+    await func.invokeRequest(ctx)
+  })
+  it ('should pretty print logs if prettify function passed in', async () => {
+    let fpretty = f.create({ prettify: (line) => {
+      return `PRETTY: ${line.msg}`
+    }})
+    fpretty.request(async (ctx) => {
+      let ret = ctx.logger.info("hello world")
+      expect(ret[0]).toEqual("PRETTY: hello world")
+    })
+    await fpretty.invokeRequest(ctx)
+  })
 })
 
 function createEmptyCtx() {

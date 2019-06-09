@@ -62,26 +62,6 @@ describe('Messages', () => {
   })
 })
 
-// [2019-05-04 18:05:57.530 +0000] INFO  (49248 on Daniels-MacBook-Pro.local): plain message
-// duration: 3
-// execution: 0
-// component: "PinoLogger:request"
-describe('Pretty', () => {
-  let logger = null
-  beforeEach(async () => {
-    logger = new f.ConsoleLogger({ LOG_PRETTY: 'true' })
-  })
-  it ('should print a pretty plain line', async () => {
-    let line = logger.info('hello world')
-    expect(line[0]).toMatch(/^\[.*\] INFO: hello world$/)
-  })
-  it ('should print a pretty line with metadata', async () => {
-    logger.meta({ hello: 'world'})
-    let line = logger.info('hello world')
-    expect(line[0]).toMatch(/^\[.*\] INFO: hello world\n    hello: \"world\"\n/)
-  })
-})
-
 describe('Levels', () => { 
   let logger = null
   beforeEach(async () => {
@@ -110,5 +90,18 @@ describe('Logging Errors', () => {
   })
   it ("should log error objects", async () => {
     logger.error(new Error("my error"))
+  })
+})
+
+describe('Prettify', () => {
+  let logger = null 
+  beforeEach(async () => {
+    logger = new f.ConsoleLogger({ prettify: (line) => {
+      return `PRETTY: ${line.msg}`
+    }})
+  })
+  it ("should print pretty logs", async () => {
+    let ret = logger.info("hello world")
+    expect(ret[0]).toEqual("PRETTY: hello world")
   })
 })
