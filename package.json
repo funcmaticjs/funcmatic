@@ -4,8 +4,7 @@
   "description": "Middleware framework for AWS Lambda using ES2017 async functions (inspired by Koa.js)",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "coverage:badges": "make-coverage-badge"
+    "test": "jest"
   },
   "author": "Daniel Jhin Yoo <danieljyoo@gmail.com> (https://github.com/danieljyoo)",
   "license": "MIT",
@@ -15,14 +14,14 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jest": "^24.8.0",
-    "make-coverage-badge": "^1.1.1"
+    "jest": "^24.8.0"
   },
   "jest": {
     "testEnvironment": "node",
     "collectCoverage": true,
     "coverageReporters": [
       "json-summary",
+      "json",
       "html",
       "text"
     ]

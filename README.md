@@ -1,7 +1,7 @@
 
 [![Funcmatic Serverless Middleware Framework for AWS Lambda](https://funcmaticjs.com/img/Logo@2x.png)](http://funcmaticjs.com)
 
-[![npm version](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic.svg)](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic) ![coverage](./badge.svg)
+[![npm version](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic.svg)](https://badge.fury.io/js/%40funcmaticjs%2Ffuncmatic) [![codecov](https://codecov.io/gh/funcmaticjs/funcmatic/branch/master/graph/badge.svg)](https://codecov.io/gh/funcmaticjs/funcmatic)
 
 ## Contents
 
