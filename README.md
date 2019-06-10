@@ -9,10 +9,11 @@
 - [Installation](#install)
 - [Lifecycle Handlers](#lifecycle)
 - [Middleware](#middleware)
+- [Logging](#logging)
 - [Testing](#testing)
 - [Alternatives](#alternatives)
 
-## <a name="intro"></a>Introduction
+## <a href="intro"></a>Introduction
 
 Funcmatic helps you develop more complex serverless functions that respond to web requests. What [Express](https://github.com/expressjs/express) is for building Node.js web servers, Funcmatic is for building Node.js web functions with AWS API Gateway and Lambda. 
  
@@ -40,7 +41,7 @@ Funcmatic is able to be so lightweight because it:
 Because Funcmatic only focuses on helping you organize the internal logic of your function, it works great with other serverless frameworks that help with packaging, configuration, and deployment (e.g. [Serverless Framework](https://github.com/serverless/serverless), [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli)).
 
 
-## <a name="install"></a>Installation
+## <a href="install"></a>Installation
 
 Funcmatic requires **node v8.10** or higher. 
 
@@ -287,7 +288,7 @@ func.teardown(async (ctx) => {
 })
 ```
 
-## <a name="intro"></a>Middleware
+## <a href="middleware"></a>Middleware
 
 One of the primary benefits of using Funcmatic is being able to package common logic into middleware and reuse it our functions.
 
@@ -524,7 +525,7 @@ There are already some handy middleware plugins that have been created and ready
 * [LogLevelPlugin](https://github.com/funcmaticjs/loglevel-plugin): Uses the 'X-Log-Level' or 'X-Correlation-Log-Level' headers to dynamically set the log level of ctx.logger.
 * [AccessLogPlugin](https://github.com/funcmaticjs/accesslog-plugin): Log a JSON line at the end of a request using NGINX access_log format.
 
-## <a name="context"></a>The Context Object (`ctx`)
+## <a href="context"></a>The Context Object (`ctx`)
 
 The context object (`ctx`) is the shared state between AWS Lambda, the Funcmatic framework, middleware, and your function's unique code. It is the interface in which information is passed between each of these layers. 
 
@@ -674,28 +675,297 @@ Funcmatic provides a default JSON logger `ctx.logger`. See *Logging using `ctx.l
 
 A reference of this currently executing Funcmatic function. Most middleware and your function will not need to reference this.
 
-## Logging using the Default Logger
+## <a href="logging"></a>Logging using the Default Logger
 
-Funcmatic has a very basic structured JSON logger (`ConsoleLogger`) and sets `ctx.logger` to it by default. 
+Funcmatic helps you use structured JSON logging in your function. Yan Cui has a great blog post explaining why it's better use structured logs (i.e. JSON) rather than lines of text with `console.log`([*You need to use structured logging with AWS Lambda*](https://hackernoon.com/you-need-to-use-structured-logging-with-aws-lambda-f3af9586d6a8)).
 
-*Why use structured JSON logging in your function? Check out Yan Cui's post, [You need to use structured logging with AWS Lambda](https://hackernoon.com/you-need-to-use-structured-logging-with-aws-lambda-f3af9586d6a8).*
+By default, Funcmatic is configured to set `ctx.logger` to its own very simple JSON logger (i.e. instance of `ConsoleLogger`). It is recommended to use `ctx.logger` rather than `console.log` in your function and any custom middleware. Of course, `console.log` will still work.  
+
 
 ### Logging Messages
 
-Funcmatic's default logger supports all the standard [Log4J Log Levels](https://en.wikipedia.org/wiki/Log4j#Log4j_log_levels): `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `off`.
+The default logger supports all the standard [Log4J Log Levels](https://en.wikipedia.org/wiki/Log4j#Log4j_log_levels): `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `off`. There are three ways you can log messages using this
+
+##### 1. Logging a simple string message
+
+If you were to log the following:
+
+```js
+ctx.logger.info("hello")
+```
+
+It would log the following JSON to `console`:
+
+```js
+{
+  msg: "hello",
+  time: 1560116027570, // Epoch ms
+  level: 30,           // Level as a number
+  level_name: "info"   // Level as a string
+}
+```
+
+Above you can see that the log fields `time`, `level`, and `level_name` are automatically added by Funcmatic. There are other automatically added fields which you can see in the section below. 
+
+##### 2. Logging a single JSON object
+
+If you were to log the following:
+
+```js
+ctx.logger.debug({ hello: "world", req: { /* JSON object */ } })
+```
+
+It would log the following JSON `console`:
+
+```js
+{
+  hello: "world",
+  req: { /* JSON object */ },
+  time: 1560116027570,       
+  level: 20,
+  level_name: "debug"
+}
+```
+
+Note that the default logger uses `JSON.stringify` so you can log nested objects as long as they are serializable into JSON. 
+
+##### 3. Logging an error object
+
+There is a special case of logging a Javascript `Error` object:
+
+```js
+try {
+  /* Some logic that throws */
+} catch (err) {
+  ctx.logger.error(err)
+}
+```
+
+This would log the following JSON:
+
+```js
+{
+  msg: "The error message" // err.message
+  err: "The stack trace"   // err.stack,
+  time: 1560116027570,
+  level: 50,
+  level_name: "error"
+}
+```
+
+Which follows the same convention that [Bunyan](https://github.com/trentm/node-bunyan) uses to log `Error` objects.
+
+##### 4. Logging a object with a string message
+
+It is also possible to log a JSON object followed by a simple string:
+
+```js
+ctx.logger.trace({ hello: "world" }, "hello world")
+```
+
+This would log the following JSON:
+
+```js
+{
+  msg: "hello world",
+  hello: "world",
+  time: 1560116027570,
+  level: 10,
+  level_name: "trace"
+}
+```
+
+Note that you could accomplish the same log line by logging a single object:
+
+```js
+ctx.logger.trace({ msg: "hello world", hello: "world" })
+```
+
+#### Log Fields Automatically Included by Funcmatic
+
+In the examples above we saw that the fields `time`, `level`, and `level_name` where automatically included by Funcmatic. Below are all the fields automatically included:
+
+- `time`
+  - Number of milliseconds elapsed since January 1, 1970 00:00:00 UTC i.e. `Date.now()`
+- `level`
+  - Number that represents the level the line was logged at.
+  - 10 (trace), 20 (debug), 30 (info), 40 (warn), 50 (error), 60 (fatal), 70 (off)
+- `level_name`
+  - String that represents the level the line was logged at.
+  - trace, debug, info, warn, error, fatal, off
+- `src`
+  - The middleware plugin or function that logged the line using `ctx.logger`
+  - Helpful when debugging errors to know which middleware or function.
+  - Will have the following format based on the log source:
+    - `AsyncFunction:[anonymous]`: Logged from an anonymous function. e.g. `func.request(async (ctx { /* ... */ })`
+    - `AsyncFunction:myHandler`: Logged from a function with the name `myHandler`.
+    - `MyPlugin:request`: Logged from a middleware plugin of class `MyPlugin` and method named `request`.
+    - `funcmatic`: Logged from the core Funcmatic framework i.e. `func.js`.
+- `lifecycle`
+  - The lifecycle handler that is currently being executed:
+  - `env`, `start`, `request`, `error`, `teardown`, `system`
+  - Will have value `system` if being logged from Funcmatic framework when it is executing logic that lives "in between" handlers.
 
 
-### Log Level
+### Setting the Log Level
 
-Supports 
+By default, the log level of `ctx.logger` is set to `info`. This means that all log levels equal or higher in severity (`info`, `warn`, `error`, `fatal`) will actually get logged to the console. Log lines with a lower level of severity (`trace`, `debug`) will be silienced.
 
-### Setting Metadata
+#### Changing the Log Level Manually
 
-You can add metadata to the logger which will 
+You can set the log level by calling `ctx.logger.level`:
+
+```js
+ctx.logger.level("debug")
+```
+
+Now all log lines at a `debug` level and higher will be output to the console.
+
+You can get the current level of `ctx.logger` by calling `ctx.logger.level()` with no arguments:
+
+```js
+ctx.logger.level()
+// returns the level name: "info"
+```
+
+#### Changing the Default Log Level
+
+You can adjust the default log level that `ctx.logger` is initialized with in a couple ways.
+
+##### 1. LOG_LEVEL environment variable
+
+When an Funcmatic instance is initialized it will first see if the `LOG_LEVEL` environment variable is set. If so, it will initialize `ctx.logger` with the log level found from `process.env["LOG_LEVEL"]`. 
+
+For example, if you use [dotenv](https://github.com/motdotla/dotenv), your `.env` file might look like:
+
+```sh
+# .env file
+LOG_LEVEL=debug
+```
+
+##### 2. Passing in LOG_LEVEL option when creating an instance of Func
+
+If you don't have control over the environment variables 
+
+```js
+const { Func } = require("@funcmaticjs/funcmatic")
+let func = new Func({ LOG_LEVEL: 'debug' })
+```
+
+### Setting Bound Fields
+
+You can add properties to the logger which will be included in all following log lines. For example, if a user is authenticated, you might want to set a bound field of `user` so that all subsequent lines include `user: [id]` without having to manually log it yourself with every call to `ctx.logger`.
+
+##### Adding Bound Fields 
+
+To add bound fields you can call `ctx.logger.state` and pass in the fields (and values) you want to always be logged:
+
+```js
+ctx.logger.state({ user: 123, email: "user@example.com" })
+```
+
+Now, whenever you log a message for the life of this specific invocation, you will see these fields. For example,
+
+```js
+ctx.logger.info("hello world")
+```
+
+Will log the following line:
+
+```js
+{
+  msg: "hello world",
+  user: 123,
+  email: "user@example.com"
+  /* ... Funcmatic default fields */
+}
+```
+
+##### Getting Bound Fields
+
+To see the current fields and values that are bound you can call `ctx.logger.state` with no arguments:
+
+```js
+// Previously: ctx.logger.state({ user: 123, email: "user@example.com" })
+let bound = ctx.logger.state()
+
+/* 
+bound = { 
+  user: 123,
+  email: "user@example.com"
+}
+*/
+```
+
+##### Clearing Bound Fields
+
+If you want clear all the bound fields in the logger, you can call `ctx.logger.state` with the boolean value `false`.
+
+```js
+ctx.logger.state(false) // clears all bound fields
+let bound = ctx.logger.state()
+/*
+bound = { }
+*/
+```
+
+##### Replacing Bound Fields
+
+You can also replace the bound fields wholesale by calling `ctx.logger.state` and passing in options of `{ replace: true }`:
+
+```js
+// Previously: ctx.logger.state({ user: 123, email: "user@example.com" })
+ctx.logger.state({ completely: "new" }, { replace: true })
+let bound = ctx.logger.state()
+/*
+bound = { 
+  completely: "new"
+}
+
+Calling ctx.logger.state({ completely: "new" }) would 
+have just done an update:
+
+bound = {
+  completely: "new",
+  user: 123,
+  email: "user@example.com"
+}
+*/
+```
+
+Note that some middleware (e.g. [CorrelationPlugin](https://github.com/funcmaticjs/correlation-plugin)) will add bound fields for you.
 
 ### Pretty Logs
 
-When in development it can be difficult to interpret logs JSON format. Turn on pretty logging by ...
+The one downside aboutstructured logging is that it is more difficult for humans to read it output. When you are actively developing and testing your function, it 
+
+We wrote a simple log prettifier that can be used with Funcmatic to turn logs that would like 
+
+[ Image of regular JSON output ]
+
+into this ...
+
+[ Image of prettified logs ]
+
+```js
+const { Func } = require("@funcmaticjs/funcmatic")
+const prettify = require("@funcmaticjs/pretty-logs")
+
+const func = new Func({ prettify })
+```
+
+#### Custom Prettify Function
+
+You can create your own `prettify` function. It ultimately needs the following interface:
+
+```js
+function (obj) {  // obj is the JSON log line
+  /* ... do some prettifying here */
+  return "someBeautifulString"
+}
+```
+
+Check out [@funcmaticjs/pretty-logs](https://github.com/funcmaticjs/pretty-logs) for an example.
 
 ## <a href="testing"></a>Unit Testing
 
