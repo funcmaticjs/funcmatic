@@ -9,11 +9,13 @@
 - [Installation](#install)
 - [Lifecycle Handlers](#lifecycle)
 - [Middleware](#middleware)
+  - [Available Middleware Plugins](#catalog)
+- [The Context Object](#context) 
 - [Logging](#logging)
 - [Testing](#testing)
 - [Alternatives](#alternatives)
 
-## <a href="intro"></a>Introduction
+## <a name="intro"></a>Introduction
 
 Funcmatic helps you develop more complex serverless functions that respond to web requests. What [Express](https://github.com/expressjs/express) is for building Node.js web servers, Funcmatic is for building Node.js web functions with AWS API Gateway and Lambda. 
  
@@ -41,7 +43,7 @@ Funcmatic is able to be so lightweight because it:
 Because Funcmatic only focuses on helping you organize the internal logic of your function, it works great with other serverless frameworks that help with packaging, configuration, and deployment (e.g. [Serverless Framework](https://github.com/serverless/serverless), [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli)).
 
 
-## <a href="install"></a>Installation
+## <a name="install"></a>Installation
 
 Funcmatic requires **node v8.10** or higher. 
 
@@ -78,7 +80,7 @@ Checkout some of the commented [examples](https://github.com/funcmaticjs/example
 * More examples coming soon ...
 
 
-## <a href="lifecycle"></a>Lifecycle Handlers
+## <a name="lifecycle"></a>Lifecycle Handlers
 
 AWS Lambda gives a [single entrypoint](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html) to execute all of our function's logic.
 
@@ -288,7 +290,7 @@ func.teardown(async (ctx) => {
 })
 ```
 
-## <a href="middleware"></a>Middleware
+## <a name="middleware"></a>Middleware
 
 One of the primary benefits of using Funcmatic is being able to package common logic into middleware and reuse it our functions.
 
@@ -525,7 +527,7 @@ There are already some handy middleware plugins that have been created and ready
 * [LogLevelPlugin](https://github.com/funcmaticjs/loglevel-plugin): Uses the 'X-Log-Level' or 'X-Correlation-Log-Level' headers to dynamically set the log level of ctx.logger.
 * [AccessLogPlugin](https://github.com/funcmaticjs/accesslog-plugin): Log a JSON line at the end of a request using NGINX access_log format.
 
-## <a href="context"></a>The Context Object (`ctx`)
+## <a name="context"></a>The Context Object (`ctx`)
 
 The context object (`ctx`) is the shared state between AWS Lambda, the Funcmatic framework, middleware, and your function's unique code. It is the interface in which information is passed between each of these layers. 
 
@@ -675,7 +677,7 @@ Funcmatic provides a default JSON logger `ctx.logger`. See *Logging using `ctx.l
 
 A reference of this currently executing Funcmatic function. Most middleware and your function will not need to reference this.
 
-## <a href="logging"></a>Logging using the Default Logger
+## <a name="logging"></a>Logging using the Default Logger
 
 Funcmatic helps you use structured JSON logging in your function. Yan Cui has a great blog post explaining why it's better use structured logs (i.e. JSON) rather than lines of text with `console.log`([*You need to use structured logging with AWS Lambda*](https://hackernoon.com/you-need-to-use-structured-logging-with-aws-lambda-f3af9586d6a8)).
 
@@ -967,12 +969,12 @@ function (obj) {  // obj is the JSON log line
 
 Check out [@funcmaticjs/pretty-logs](https://github.com/funcmaticjs/pretty-logs) for an example.
 
-## <a href="testing"></a>Unit Testing
+## <a name="testing"></a>Unit Testing
 
 
 ##### Unit Testing Plugins
 
-## <a href="alternatives"></a>Alternatives 
+## <a name="alternatives"></a>Alternatives 
 
 If Funcmatic doesn't quite suit your project (or your tastes) here are some other projects that might be useful:
 
