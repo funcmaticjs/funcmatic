@@ -525,6 +525,7 @@ There are already some handy middleware plugins that have been created and ready
 ##### Logging and Monitoring
 * [CorrelationPlugin](https://github.com/funcmaticjs/correlation-plugin): Sets 'x-correlation-id' in 'ctx.logger' so that log messages can be correlated across different functions and services.
 * [LogLevelPlugin](https://github.com/funcmaticjs/loglevel-plugin): Uses the 'X-Log-Level' or 'X-Correlation-Log-Level' headers to dynamically set the log level of ctx.logger.
+* [ContextLoggerPlugin](https://github.com/funcmaticjs/contextlogger-plugin): Add bound fields to the logger from the AWS context event.
 * [AccessLogPlugin](https://github.com/funcmaticjs/accesslog-plugin): Log a JSON line at the end of a request using NGINX access_log format.
 
 ## <a name="context"></a>The Context Object (`ctx`)
