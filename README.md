@@ -971,8 +971,93 @@ Check out [@funcmaticjs/pretty-logs](https://github.com/funcmaticjs/pretty-logs)
 
 ## <a name="testing"></a>Unit Testing
 
+Funcmatic was designed to support unit testing. Examples below will be in **[jest](https://jestjs.io)**.
 
-##### Unit Testing Plugins
+### Basic Test Structure
+
+```js
+describe('Func', () => {
+  let func = null
+  let ctx = { }
+  beforeEach(async () => {
+    func = require("../lib/func.js")
+    ctx = func.initCtx(ctx)
+  })
+  afterEach(async () => {
+    func.teardown()
+  })
+  it ("should test a cold start invocation", async () => {
+    ctx.event.httpMethod = "POST"
+    ctx.event.headers[""] = "test"
+    ctx.event.body = JSON.stringify({hello: "world"})
+
+    await func.invoke(ctx)
+    expect(ctx.response).toMatchObject({
+      statusCode: ,
+      headers: {
+
+      }
+    })
+    let body = JSON.parse(ctx.response.body)
+    expect(body).toMatchObject({
+
+    })
+  })
+  it ("should test a warm start invocation", async () => {
+    await func.invoke(ctx) // cold start
+    await func.invoke(ctx)
+
+  })
+  it ("should test env hander", async () => {
+    await func.invokeEnv(ctx)
+    expect(ctx.env).toMatchObject({
+
+    })
+  })
+  it ("should test the start handler", async () => {
+    await func.invokeStart(ctx)
+    expect(ctx.state).toMatchObject({
+
+    })
+  })
+  it ("should test the request handler", async () => [
+
+  ])
+  it ("should test the error handler", async () => {
+    await func.invokeError(ctx)
+  })
+})
+```
+
+### Running Tests
+
+Install jest 
+
+```
+$> npm install --save-dev jest
+```
+
+Update package.json
+
+```
+```
+
+Run 
+
+```
+npm test
+```
+
+See code coverage
+
+Use the following to set the LOG_LEVEL and pretty logging
+
+LOG_LEVEL=debug LOG_PRETTY=true 
+
+
+### Trace Level Logs
+
+
 
 ## <a name="alternatives"></a>Alternatives 
 

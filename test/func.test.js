@@ -49,8 +49,9 @@ describe('Func Cold Start', () => {
   it ('should be cold start when func is created', async () => {
     expect(func.isColdStart()).toBeTruthy()
   })
-  it ('should not be cold start after start is invoked', async () => {
-    await func.invokeStart(ctx)
+  it ('should not be cold start after first invocation', async () => {
+    await func.invoke(ctx)
+    expect(func.started).toBe(true)
     expect(func.isColdStart()).toBeFalsy()
   })
   it ('should force a coldstart', async () => {
@@ -92,6 +93,35 @@ describe('Func Cold Start', () => {
     await wait(100)
     await func.invoke(ctx)
     expect(func.expiresAt).toBe(null)
+  })
+  it ('should NOT call teardown on a true coldstart', async () => {
+    let teardownCalled = false
+    func.teardown(async () => {
+      teardownCalled = true
+    })
+    await func.invoke(ctx)
+    expect(teardownCalled).toBe(false)
+    await func.invoke(ctx)
+    expect(teardownCalled).toBe(false)
+  })
+  it ('should call teardown on a restart (second coldstart)', async () => {
+    let teardownCalled = false
+    func.teardown(async () => {
+      teardownCalled = true
+    })
+    await func.invoke(ctx)
+    await func.invoke(ctx, { forceColdStart: true })
+    expect(teardownCalled).toBe(true)
+  })
+  it ('should not count as started if error thrown before start completes', async () => {
+    func.start(async (ctx) => {
+      throw new Error("Start error")
+    })
+    try {
+      await func.invoke(ctx)
+    } catch (err) { }
+    expect(func.started).toBe(false)
+    expect(func.isColdStart()).toBeTruthy()
   })
 })
 
