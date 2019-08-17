@@ -133,9 +133,12 @@ describe('Func Env', () => {
     ctx = createEmptyCtx()
   })
   // Environment Variables
-  it ('should init env as empty', async () => {
+  it ('should init env with LOG_LEVEL and NODE_ENV', async () => {
     await func.invokeEnv(ctx)
-    expect(ctx.env).toEqual({ })
+    expect(ctx.env).toEqual({
+      LOG_LEVEL: "info",
+      NODE_ENV: "test"
+    })
   })
   it ('should bring process.env using middleware', async () => {
     func.env(async (ctx, next) => {
@@ -334,6 +337,14 @@ describe('Func Teardown', () => {
     func.use([ new TeardownErrorMW(), f ])
     await func.invokeTeardown()
     expect(f.teardowninvoked).toBeTruthy()
+  })
+  it ('should init env after invokeTeardown event ', async () => {
+    func.environment = { LOG_LEVEL: "something", NEW_ENV_VARIABLE: "else" }
+    await func.invokeTeardown()
+    expect(func.environment).toEqual({
+      LOG_LEVEL: "info",
+      NODE_ENV: "test"
+    })
   })
 })
 
