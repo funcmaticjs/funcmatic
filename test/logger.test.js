@@ -29,7 +29,7 @@ describe('Logger Fields', () => {
   })
   it ('should merge state fields in plain string log message', async () => {
     logger.state({ meta: 'data' })
-    expect(logger.info("hello world")).toMatchObject({
+    expect(JSON.parse(logger.info("hello world"))).toMatchObject({
       meta: 'data',
       msg: 'hello world'
     })
@@ -58,7 +58,7 @@ describe('Logger Fields', () => {
   })
   it ('should merge state fields in plain string log message', async () => {
     logger.env({ meta: 'data' })
-    expect(logger.info("hello world")).toMatchObject({
+    expect(JSON.parse(logger.info("hello world"))).toMatchObject({
       meta: 'data',
       msg: 'hello world'
     })
@@ -71,12 +71,12 @@ describe('Messages', () => {
     logger = new f.LoggerWrapper()
   })
   it ("should set standard fields 'level' and 'time' in the log message", async () => {
-    expect(logger.info('hello world')).toMatchObject({
+    expect(JSON.parse(logger.info('hello world'))).toMatchObject({
       level: 30,
       level_name: 'info',
       time: expect.anything()
     })
-    expect(logger.error('error!')).toMatchObject({
+    expect(JSON.parse(logger.error('error!'))).toMatchObject({
       level: 50,
       level_name: 'error', 
       time: expect.anything()
@@ -84,7 +84,7 @@ describe('Messages', () => {
   })
   it ('should merge metadata in an object log message', async () => {
     logger.state({ meta: 'data' })
-    expect(logger.info({ hello: 'world' })).toMatchObject({
+    expect(JSON.parse(logger.info({ hello: 'world' }))).toMatchObject({
       meta: 'data',
       hello: 'world'
     })

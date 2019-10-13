@@ -416,7 +416,7 @@ describe('Func Logger', () => {
   it ('should not pretty print logs by default', async () => {
     func.request(async (ctx) => {
       let line = ctx.logger.info("hello world")
-      expect(line).toMatchObject({
+      expect(JSON.parse(line)).toMatchObject({
         msg: "hello world"
       })
     })

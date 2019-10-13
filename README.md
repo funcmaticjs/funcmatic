@@ -687,7 +687,9 @@ By default, Funcmatic is configured to set `ctx.logger` to its own very simple J
 
 ### Logging Messages
 
-The default logger supports all the standard [Log4J Log Levels](https://en.wikipedia.org/wiki/Log4j#Log4j_log_levels): `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `off`. There are three ways you can log messages using this
+The default logger supports all the standard [Log4J Log Levels](https://en.wikipedia.org/wiki/Log4j#Log4j_log_levels): `trace` (10), `debug` (20), `info` (30), `warn` (40), `error` (50), `fatal` (60), `off` (70). 
+
+There are three ways you can log messages using this
 
 ##### 1. Logging a simple string message
 
