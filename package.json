@@ -1,6 +1,6 @@
 {
   "name": "@funcmaticjs/funcmatic",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "description": "Middleware framework for AWS Lambda using ES2017 async functions (inspired by Koa.js)",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jest": "^24.8.0"
+    "jest": "^24.9.0"
   },
   "jest": {
     "testEnvironment": "node",

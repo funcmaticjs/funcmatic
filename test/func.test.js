@@ -249,14 +249,38 @@ describe('Func Error', () => {
     func = new f.create()
     ctx = createEmptyCtx()
   })
-  it ('should just log if error handler throws error', async () => {
+  it ('should invoke error handler for unhandled error', async () => {
+    func.request(async (ctx) => {
+      throw new Error("Error from request handler")
+    })
+    func.error(async (ctx) => {
+      ctx.state.errorhandled = true
+    })
+    let error = null
+    try {
+      await func.invoke(ctx)
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Error from request handler")
+    expect(ctx.state.errorhandled).toBe(true)
+  })
+  it ('should throw original error even if error handler throws error', async () => {
     func.request(async (ctx) => {
       throw new Error("Error from request handler")
     })
     func.error(async (ctx) => {
       throw new Error("Error from error handler")
     })
-    await func.invoke(ctx)
+    let error = null
+    try {
+      await func.invoke(ctx)
+    } catch (err) {
+      error = err
+    }
+    expect(error).toBeTruthy()
+    expect(error.message).toEqual("Error from request handler")
   })
 })
 
@@ -278,22 +302,31 @@ describe('Func Invoke', () => {
   // Error handling
   it ('should set ctx.error if the error is unhandled', async () => {
     func.use([ new DownstreamErrorMW(), new UserFunc() ])
-    await func.invoke(ctx)
+    try {
+      await func.invoke(ctx)
+    } catch (err) { }
     expect(ctx.error).toBeTruthy()
     expect(ctx.error.message).toEqual("Downstream Error")
   })
   it ('should expose message and stacktrace if not in production', async () => {
     func.use([ new DownstreamErrorMW(), new UserFunc() ])
-    await func.invoke(ctx)
+    try {
+      await func.invoke(ctx)
+    } catch (err) { }
     expect(ctx.error.expose).toBeTruthy()
     expect(ctx.error.stacktrace).toBeTruthy()
   })
   it ('should not expose message or stacktrace if in production', async () => {
     func.NODE_ENV = 'production'
     func.use([ new DownstreamErrorMW(), new UserFunc() ])
-    await func.invoke(ctx)
+    try {
+      await func.invoke(ctx)
+    } catch (err) { }
     expect(ctx.error.expose).toBeFalsy()
     expect(ctx.error.stacktrace).toBeFalsy()
+  })
+  it ('should throw if there is an unhandled error', async () => {
+
   })
 })
 
